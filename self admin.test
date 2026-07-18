@@ -1,0 +1,76 @@
+// tests/selfAdmin.test.js
+//
+// Proves requirement: "No one can make themselves an admin by
+// signing up." Run with the Firebase Emulator Suite so this test
+// never touches real data:
+//   firebase emulators:exec --only firestore,auth "npx vitest run tests/selfAdmin.test.js"
+
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import {
+  initializeTestEnvironment,
+  assertFails,
+  assertSucceeds
+} from '@firebase/rules-unit-testing';
+import { readFileSync } from 'fs';
+import { doc, setDoc } from 'firebase/firestore';
+
+let testEnv;
+
+beforeAll(async () => {
+  testEnv = await initializeTestEnvironment({
+    projectId: 'mini-lms-test',
+    firestore: {
+      rules: readFileSync('firestore.rules', 'utf8')
+    }
+  });
+});
+
+afterAll(async () => {
+  await testEnv.cleanup();
+});
+
+describe('Self-admin signup protection', () => {
+  it('blocks a new user from setting role to "admin" on signup', async () => {
+    const uid = 'test-user-1';
+    const userCtx = testEnv.authenticatedContext(uid);
+    const db = userCtx.firestore();
+
+    await assertFails(
+      setDoc(doc(db, 'users', uid), {
+        email: 'attacker@example.com',
+        role: 'admin' // <-- attempted self-promotion
+      })
+    );
+  });
+
+  it('allows a new user to sign up with role "learner"', async () => {
+    const uid = 'test-user-2';
+    const userCtx = testEnv.authenticatedContext(uid);
+    const db = userCtx.firestore();
+
+    await assertSucceeds(
+      setDoc(doc(db, 'users', uid), {
+        email: 'learner@example.com',
+        role: 'learner'
+      })
+    );
+  });
+
+  it('blocks a user from later updating their own role to "admin"', async () => {
+    const uid = 'test-user-3';
+    const userCtx = testEnv.authenticatedContext(uid);
+    const db = userCtx.firestore();
+
+    await setDoc(doc(db, 'users', uid), {
+      email: 'learner2@example.com',
+      role: 'learner'
+    });
+
+    await assertFails(
+      setDoc(doc(db, 'users', uid), {
+        email: 'learner2@example.com',
+        role: 'admin'
+      })
+    );
+  });
+});
