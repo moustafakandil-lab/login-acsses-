@@ -1,0 +1,47 @@
+/* src/styles/index.css — global resets and design tokens */
+
+:root {
+  --color-bg: #F6F7F9;
+  --color-surface: #FFFFFF;
+  --color-border: #E2E5EA;
+  --color-text: #1B1F27;
+  --color-text-muted: #5B6270;
+  --color-primary: #2955D6;
+  --color-primary-hover: #1E42AE;
+  --color-danger: #C4322F;
+  --color-danger-bg: #FDEDEC;
+  --radius: 10px;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 0 0 1.25rem;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+a {
+  color: var(--color-primary);
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
